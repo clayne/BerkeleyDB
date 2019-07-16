@@ -184,7 +184,7 @@ extern "C" {
 #define DBM_FILTERING
 #define STRICT_CLOSE
 /* #define ALLOW_RECNO_OFFSET */
-/* #define TRACE  */
+#define TRACE
 
 #if DB_VERSION_MAJOR == 2 && ! defined(DB_LOCK_DEADLOCK)
 #  define DB_LOCK_DEADLOCK	EAGAIN
@@ -3319,7 +3319,10 @@ _DESTROY(env)
 #endif
           Safefree(env) ;
 	  hash_delete("BerkeleyDB::Term::Env", (char *)env) ;
-	  Trace(("End of BerkeleyDB::Env::DESTROY %d\n", RETVAL)) ;
+          if (RETVAL)
+	        Trace(("End of BerkeleyDB::Env::DESTROY %d (%s)\n", RETVAL, db_strerror(RETVAL))) ;
+          else
+	        Trace(("End of BerkeleyDB::Env::DESTROY %d\n", RETVAL)) ;
 
 BerkeleyDB::TxnMgr::Raw
 _TxnMgr(env)
@@ -4803,7 +4806,10 @@ db_get(db, key, data, flags=0)
 	  SetPartial(data,db) ;
 	  Trace(("db_get db[%p] in [%p] txn[%p] key [%.*s] flags[%d]\n", db->dbp, db, db->txn, key.size, (char*)key.data, flags)) ;
 	  RETVAL = db_get(db, key, data, flags);
-	  Trace(("  RETVAL %d\n", RETVAL));
+          if (RETVAL)
+	        Trace(("  RETVAL %d (%s)\n", RETVAL, db_strerror(RETVAL)));
+          else
+	        Trace(("  RETVAL %d\n", RETVAL));
 	OUTPUT:
 	  RETVAL
 	  key	if (writeToKey()) OutputKey(ST(1), key) ;
@@ -4826,7 +4832,10 @@ db_exists(db, key, flags=0)
 	  saveCurrentDB(db) ;
 	  Trace(("db_exists db[%p] in [%p] txn[%p] key [%.*s] flags[%d]\n", db->dbp, db, db->txn, key.size, (char*)key.data, flags)) ;
 	  RETVAL = db_exists(db, key, flags);
-	  Trace(("  RETVAL %d\n", RETVAL));
+          if (RETVAL)
+	        Trace(("  RETVAL %d (%s)\n", RETVAL, db_strerror(RETVAL)));
+          else
+	        Trace(("  RETVAL %d\n", RETVAL));
 #endif
 	OUTPUT:
 	  RETVAL
@@ -4852,7 +4861,10 @@ db_pget(db, key, pkey, data, flags=0)
 	  saveCurrentDB(db) ;
 	  SetPartial(data,db) ;
 	  RETVAL = db_pget(db, key, pkey, data, flags);
-	  Trace(("  RETVAL %d\n", RETVAL));
+          if (RETVAL)
+	        Trace(("  RETVAL %d (%s)\n", RETVAL, db_strerror(RETVAL)));
+          else
+	        Trace(("  RETVAL %d\n", RETVAL));
 #endif
 	OUTPUT:
 	  RETVAL
@@ -4876,7 +4888,10 @@ db_put(db, key, data, flags=0)
 	  /* SetPartial(data,db) ; */
 	  Trace(("db_put db[%p] in [%p] txn[%p] key[%.*s] data [%.*s] flags[%d]\n", db->dbp, db, db->txn, key.size, (char*)key.data, data.size, (char*)data.data, flags)) ;
 	  RETVAL = db_put(db, key, data, flags);
-	  Trace(("  RETVAL %d\n", RETVAL));
+	  if (RETVAL)
+	        Trace(("  RETVAL %d (%s)\n", RETVAL, db_strerror(RETVAL)));
+	  else
+	        Trace(("  RETVAL %d\n", RETVAL));
 	OUTPUT:
 	  RETVAL
 	  key	if (flagSet(DB_APPEND)) OutputKey(ST(1), key) ;
